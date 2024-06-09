@@ -1,80 +1,84 @@
-#define F_CPU 16000000UL
-#include <avr/io.h>
-#include <util/delay.h>
-#include <stdio.h>
+#define F_CPU 16000000UL  // Define la frecuencia de la CPU como 16 MHz
+#include <avr/io.h>       
+#include <util/delay.h>   
+#include <stdio.h>        
 #include <avr/interrupt.h>
-#include "dht11.h"
-#include "timer.h"
-#include "rtc.h"
-#include "serialPort.h"
-#define BR9600 (0x67)	// 0x67=103 configura BAUDRATE=9600@16MHz
+#include "dht11.h"        
+#include "timer.h"        
+#include "serialPort.h"   
+#include "i2c.h"          
+#include "ds3231.h"       
 
+#define BR9600 (0x67)  // 0x67=103 configura BAUDRATE=9600@16MHz
 
-volatile uint8_t send_data = 1;
-volatile char RX_Buffer = 0; // Buffer para recepción de datos
-extern volatile uint8_t flagLibre;
+volatile uint8_t send_data = 1;  // Variable global para controlar el envío de datos
+volatile char RX_Buffer = 0;     // Buffer para recepción de datos
+extern volatile flagLibre;       // Variable externa para indicar el estado del buffer de transmisión
 
 int main(void) {
 	// Inicialización del temporizador
-	timer1_init();
+	timer1_init();  // Llama a la función de inicialización del temporizador
 
 	// Habilita interrupciones globales
-	sei();
-	
+	sei();  // Habilita todas las interrupciones globales
+
 	// Inicialización de I2C y UART
-	I2C_init();	
-	SerialPort_Init(BR9600); // Inicializo formato 8N1 y BAUDRATE = 9600bps
-	SerialPort_TX_Enable();
-	SerialPort_RX_Enable();
-	_delay_ms(100);
-	SerialPort_TX_Interrupt_Enable();
+	I2C_Init();  // Inicializa la comunicación I2C
+	DS3231_Time currentTime;  // Crea una estructura para almacenar el tiempo del RTC
+	currentTime.seconds = 0;  // Establece los segundos iniciales a 0
+	currentTime.minutes = 0;  // Establece los minutos iniciales a 0
+	currentTime.hours = 18;   // Establece las horas iniciales a 18 (6 PM)
+	currentTime.day = 3;      // Establece el día de la semana inicial a 3
+	currentTime.date = 9;     // Establece la fecha inicial al 9
+	currentTime.month = 6;    // Establece el mes inicial a junio
+	currentTime.year = 24;    // Establece el año inicial a 2024
+	DS3231_SetTime(&currentTime);  // Establece el tiempo del RTC con la estructura inicializada
 
-	char msg[] = "Sistema Iniciado\n\r";
-	SerialPort_Send_String(msg);
-	SerialPort_RX_Interrupt_Enable();
-	
-	
+	SerialPort_Init(BR9600); // Inicializa el puerto serie con el baudrate 9600
+	SerialPort_TX_Enable();  // Habilita la transmisión por el puerto serie
+	SerialPort_RX_Enable();  // Habilita la recepción por el puerto serie
+	SerialPort_TX_Interrupt_Enable();  // Habilita la interrupción de transmisión del puerto serie
+	char msg[] = "Sistema Iniciado\n\r";  // Define un mensaje de inicio
+	SerialPort_Send_String(msg);  // Envía el mensaje de inicio por el puerto serie
+	SerialPort_RX_Interrupt_Enable();  // Habilita la interrupción de recepción del puerto serie
 
-	uint8_t hour, minute, second;
-	uint8_t day, month;
-	uint16_t year;
+	uint8_t hour, minute, second;  // Variables para almacenar la hora, los minutos y los segundos
+	uint8_t day, month;  // Variables para almacenar el día y el mes
+	uint8_t year;  // Variable para almacenar el año
 
-	while (1) {
-		if (flag) {
-			flag = 0;
-			read_dht11();
+	while (1) {  // Bucle infinito
+		if (flag) {  // Comprueba si el flag está activado
+			flag = 0;  // Resetea el flag
 
-			if (send_data) {
-				//RTC_get_time(&hour, &minute, &second);
-				//RTC_get_date(&day, &month, &year);
-
-				// Formatear y enviar datos
-				char buffer[128];
-				//snprintf(buffer, sizeof(buffer), "TEMP: %d°C HUM: %d%% FECHA: %d/%d/%d HORA: %d:%d:%d\n\r", temperature, humidity, day, month, year, hour, minute, second);
-				snprintf(buffer, sizeof(buffer), "TEMP: %d°C HUM: %d%% \n\r", temperature, humidity);
-				//char msg2[] = "Sistema Iniciado\n\r";
-				SerialPort_Send_String(buffer);
+			if (send_data) {  // Si el envío de datos está habilitado
+				DS3231_GetTime(&currentTime);  // Obtiene la hora actual del RTC
+				read_dht11();  // Lee los datos del sensor DHT11
+				// Formatea y envía los datos
+				char buffer[128];  // Define un buffer para el mensaje
+				snprintf(buffer, sizeof(buffer), "TEMP: %d°C HUM: %d%% FECHA: %d/%d/%d HORA: %d:%d:%d\n\r", temperature, humidity, currentTime.date, currentTime.month, currentTime.year, currentTime.hours, currentTime.minutes, currentTime.seconds);
+				SerialPort_Send_String(buffer);  // Envía el mensaje formateado por el puerto serie
 			}
 		}
 
-		// Cambiar el estado de envío de datos al recibir 's' o 'S'
-		if (RX_Buffer) {
-			if (RX_Buffer == 's' || RX_Buffer == 'S') {
-				send_data = !send_data;
+		// Cambia el estado de envío de datos al recibir 's' o 'S'
+		if (RX_Buffer) {  // Comprueba si hay un dato recibido en el buffer
+			if (RX_Buffer == 's' || RX_Buffer == 'S') {  // Si el dato recibido es 's' o 'S'
+				send_data = !send_data;  // Cambia el estado de la variable send_data
 			}
-			RX_Buffer = 0;
+			RX_Buffer = 0;  // Resetea el buffer de recepción
 		}
 	}
 
-	return 1;
+	return 1;  // Retorna 1 (aunque nunca llegará a este punto debido al bucle infinito)
 }
 
-
+// Interrupción de recepción UART
 ISR(USART_RX_vect) {
-	RX_Buffer = UDR0; // La lectura del UDR borra el flag RXC
+	RX_Buffer = UDR0; // Lee el dato recibido y lo almacena en RX_Buffer (la lectura borra el flag RXC)
 }
 
-ISR(USART_UDRE_vect){
-	flagLibre = 1;
-	SerialPort_TX_Interrupt_Disable();
+// Interrupción de transmisión UART
+ISR(USART_UDRE_vect) {
+	flagLibre = 1;  // Indica que el buffer de transmisión está libre
+	SerialPort_TX_Interrupt_Disable();  // Deshabilita la interrupción de transmisión UART
 }

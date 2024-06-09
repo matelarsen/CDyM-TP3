@@ -7,7 +7,8 @@
 
 #include "SerialPort.h"
 
-volatile uint8_t flagLibre=0;
+
+volatile uint8_t flagLibre = 0;
 
 // ------ Definiciones de Funciones Públicas -------------------
 
@@ -28,7 +29,7 @@ void SerialPort_Init(uint8_t config){
 void SerialPort_TX_Enable(void){
 	UCSR0B |= (1<<TXEN0);
 }
-/*
+
 void SerialPort_TX_Interrupt_Enable(void){
 	UCSR0B |= (1<<UDRIE0);
 	//UCSR0B |=(1<<TXCIE0); //interrupcion TXC
@@ -40,7 +41,7 @@ void SerialPort_TX_Interrupt_Disable(void)
 	UCSR0B &=~(1<<UDRIE0);
 	//UCSR0B &=~(1<<TXCIE0); //interrupcion TXC
 
-}*/
+}
 
 
 // Inicialización de Receptor
@@ -53,13 +54,6 @@ void SerialPort_RX_Interrupt_Enable(void){
 	UCSR0B |= (1<<RXCIE0);
 }
 
-void SerialPort_TX_Interrupt_Enable(void){
-	UCSR0B |= (1<<UDRIE0);
-}
-
-void SerialPort_TX_Interrupt_Disable(void){
-	UCSR0B &= ~(1<<UDRIE0);
-}
 
 // Transmisión
 
@@ -77,13 +71,11 @@ void SerialPort_Send_String(char * msg){ //msg -> "Hola como andan hoy?" 20 ASCI
 	uint8_t i = 0;
 	//'\0' = 0x00
 	while(msg[i]){ // *(msg+i)
-		//SerialPort_Wait_For_TX_Buffer_Free(); //9600bps formato 8N1, 10bits, 10.Tbit=10/9600=1ms 
-		_delay_ms(10);
 		if (flagLibre){
-		  SerialPort_Send_Data(msg[i]);
-		  i++;
-		  flagLibre=0;
-		  SerialPort_TX_Interrupt_Enable();
+			SerialPort_Send_Data(msg[i]);
+			i++;
+			flagLibre = 0;
+			SerialPort_TX_Interrupt_Enable();
 		}
 	}
 }

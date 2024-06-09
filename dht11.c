@@ -18,6 +18,7 @@ void read_dht11(void) {
 	_delay_ms(18); // Mantiene LOW por al menos 18 ms
 	DHT11_PORT |= (1 << DHT11_PIN);  // Lleva el pin a HIGH
 	_delay_us(20);  // Espera 20-40 us
+	
 	DHT11_DDR &= ~(1 << DHT11_PIN);  // Configura el pin como entrada
 
 	// Espera la respuesta del sensor
@@ -35,17 +36,6 @@ void read_dht11(void) {
 	temperature = data[2];
 	check_sum = data[4];
 
-	// Verifica la suma de comprobación
-	if ((humidity + temperature) != check_sum) {
-		// Error de checksum, manejar el error
-		//UART_sendString("Checksum Error\r\n");
-		_delay_ms(2000); // Espera para que el mensaje se pueda leer
-		} else {
-		// Envía los datos por UART para depuración
-		char buffer[32];
-		sprintf(buffer, "Temp: %d C, Hum: %d %%\r\n", temperature, humidity);
-		//	UART_sendString(buffer);
-	}
 }
 
 uint8_t read_byte(void) {
