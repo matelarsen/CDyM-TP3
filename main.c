@@ -55,7 +55,10 @@ int main(void) {
 				read_dht11();  // Lee los datos del sensor DHT11
 				// Formatea y envía los datos
 				char buffer[128];  // Define un buffer para el mensaje
-				snprintf(buffer, sizeof(buffer), "TEMP: %d°C HUM: %d%% FECHA: %d/%d/%d HORA: %d:%d:%d\n\r", temperature, humidity, currentTime.date, currentTime.month, currentTime.year, currentTime.hours, currentTime.minutes, currentTime.seconds);
+				if (!fallo)
+				  snprintf(buffer, sizeof(buffer), "TEMP: %02d°C HUM: %02d%% FECHA: %02d/%02d/%02d HORA: %02d:%02d:%02d\n\r", temperature, humidity, currentTime.date, currentTime.month, currentTime.year, currentTime.hours, currentTime.minutes, currentTime.seconds);
+				else
+				  snprintf(buffer, sizeof(buffer), "Fallo del sensor DHT11!!\n\r");
 				SerialPort_Send_String(buffer);  // Envía el mensaje formateado por el puerto serie
 			}
 		}

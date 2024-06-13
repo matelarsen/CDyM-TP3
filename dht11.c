@@ -7,11 +7,12 @@
 volatile uint8_t temperature = 0;
 volatile uint8_t humidity = 0;
 volatile uint8_t check_sum = 0;
+volatile uint8_t fallo = 0;
 
 void read_dht11(void) {
 	uint8_t i;
 	uint8_t data[5] = {0};
-
+	uint16_t timeout;
 	// Inicia la comunicación con el sensor
 	DHT11_DDR |= (1 << DHT11_PIN);  // Configura el pin del DHT11 como salida
 	DHT11_PORT &= ~(1 << DHT11_PIN); // Lleva el pin a LOW
@@ -22,9 +23,29 @@ void read_dht11(void) {
 	DHT11_DDR &= ~(1 << DHT11_PIN);  // Configura el pin como entrada
 
 	// Espera la respuesta del sensor
-	while(DHT11_PIN_INPUT & (1 << DHT11_PIN)); // Espera a que el pin se ponga en LOW
-	while(!(DHT11_PIN_INPUT & (1 << DHT11_PIN))); // Espera a que el pin se ponga en HIGH
-	while(DHT11_PIN_INPUT & (1 << DHT11_PIN)); // Espera a que el pin se ponga en LOW
+	timeout = 10000;
+	while (DHT11_PIN_INPUT & (1 << DHT11_PIN)) { // Espera a que el pin se ponga en LOW
+		if (--timeout == 0) {
+			fallo = 1;
+			return;
+		}
+	}
+
+	timeout = 10000;
+	while (!(DHT11_PIN_INPUT & (1 << DHT11_PIN))) { // Espera a que el pin se ponga en HIGH
+		if (--timeout == 0) {
+			fallo = 1;
+			return;
+		}
+	}
+
+	timeout = 10000;
+	while (DHT11_PIN_INPUT & (1 << DHT11_PIN)) { // Espera a que el pin se ponga en LOW
+		if (--timeout == 0) {
+			fallo = 1;
+			return;
+		}
+	}
 
 	// Lee los 5 bytes de datos
 	for (i = 0; i < 5; i++) {
@@ -35,6 +56,13 @@ void read_dht11(void) {
 	humidity = data[0];
 	temperature = data[2];
 	check_sum = data[4];
+	
+	// Verifica la suma de comprobación
+	if ((humidity + temperature) != check_sum) {
+		fallo=1;
+		} else {
+		  fallo=0;
+	}
 
 }
 

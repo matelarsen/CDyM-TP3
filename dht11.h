@@ -11,7 +11,7 @@
 extern volatile uint8_t temperature;
 extern volatile uint8_t humidity ;
 extern volatile uint8_t check_sum;
-
+extern volatile uint8_t fallo;
 
 void init_dht11(void);
 void read_dht11(void);
