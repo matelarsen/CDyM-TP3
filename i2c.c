@@ -2,36 +2,35 @@
 #include "i2c.h"
 
 void I2C_Init(void) {
-	// Set SCL frequency to 400kHz with 16MHz clock
 	TWSR = 0x00; // Configura el prescaler a 1
 	TWBR = 152; // Configura el Bit Rate para 400kHz
-	TWCR = (1<<TWEN); // Habilita el m骴ulo TWI
+	TWCR = (1<<TWEN); // Habilita el m贸dulo TWI
 }
 
 void I2C_Start(void) {
-	TWCR = (1<<TWINT) | (1<<TWSTA) | (1<<TWEN); // Inicia la condici髇 de START
-	while (!(TWCR & (1<<TWINT))); // Espera a que se complete la condici髇 de START
+	TWCR = (1<<TWINT) | (1<<TWSTA) | (1<<TWEN); // Inicia la condici贸n de START
+	while (!(TWCR & (1<<TWINT))); // Espera a que se complete la condici贸n de START
 }
 
 void I2C_Stop(void) {
-	TWCR = (1<<TWINT) | (1<<TWEN) | (1<<TWSTO); // Genera una condici髇 de STOP
-	while(TWCR & (1<<TWSTO)); // Espera a que se complete la condici髇 de STOP
+	TWCR = (1<<TWINT) | (1<<TWEN) | (1<<TWSTO); // Genera una condici贸n de STOP
+	while(TWCR & (1<<TWSTO)); // Espera a que se complete la condici贸n de STOP
 }
 
 void I2C_Write(uint8_t data) {
 	TWDR = data; // Carga el dato en el registro de datos del TWI
-	TWCR = (1<<TWINT) | (1<<TWEN); // Inicia la transmisi髇
-	while (!(TWCR & (1<<TWINT))); // Espera a que se complete la transmisi髇
+	TWCR = (1<<TWINT) | (1<<TWEN); // Inicia la transmisi贸n
+	while (!(TWCR & (1<<TWINT))); // Espera a que se complete la transmisi贸n
 }
 
 uint8_t I2C_Read_ACK(void) {
-	TWCR = (1<<TWINT) | (1<<TWEN) | (1<<TWEA); // Inicia la recepci髇 y env韆 un ACK despu閟 de recibir un byte
-	while (!(TWCR & (1<<TWINT))); // Espera a que se complete la recepci髇
+	TWCR = (1<<TWINT) | (1<<TWEN) | (1<<TWEA); // Inicia la recepci贸n y env铆a un ACK despu茅s de recibir un byte
+	while (!(TWCR & (1<<TWINT))); // Espera a que se complete la recepci贸n
 	return TWDR; // Devuelve el dato recibido
 }
 
 uint8_t I2C_Read_NACK(void) {
-	TWCR = (1<<TWINT) | (1<<TWEN); // Inicia la recepci髇 y no env韆 un ACK despu閟 de recibir un byte
-	while (!(TWCR & (1<<TWINT))); // Espera a que se complete la recepci髇
+	TWCR = (1<<TWINT) | (1<<TWEN); // Inicia la recepci贸n y no env铆a un ACK despu茅s de recibir un byte
+	while (!(TWCR & (1<<TWINT))); // Espera a que se complete la recepci贸n
 	return TWDR; // Devuelve el dato recibido
 }
