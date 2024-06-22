@@ -1,34 +1,37 @@
 # Trabajo Practico 3 - Circuitos Digitales y Microcontroladores
+# Registrador de Temperatura y Humedad con MCU
 
-Breve descripción del proyecto, su propósito y los problemas que resuelve.
-
-Implementacion de un registrador de temperatura y humedad relativa ambiente utilizando el sensor DHT11, el
-módulo RTC DS3231 y el kit del MCU conectado a una PC por medio de la interfaz USB.
-El sensor DHT11 estará conectado al terminal PORTC0 del MCU, mientras que el módulo RTC se conectará
-mediante la interfaz I2C del mismo. Para resolver el problema se implementan los drivers para el control del
-sensor, para el control del módulo RTC y para la comunicación serie asincrónica por UART.
-
-## Requerimientos que el sistema debe cumplir: 
-a) El MCU deberá encuestar al sensor para obtener una medida de la temperatura y la humedad relativa cada
-2seg.
-b) Utilizando el módulo RTC el MCU completará el registro agregando la fecha y hora actual a cada una de las
-medidas obtenidas con el sensor.
-c) Por último realizará un formateo de los datos para transmitir el mensaje a una terminal serie en PC. Por
-ejemplo, el formato puede ser “TEMP: 20 °C HUM: 40% FECHA: 10/06/24 HORA:15:30:56\r\n”
-d) El envío de datos se podrá detener o reanudar desde la PC presionando la tecla ‘s’ o ‘S’ sucesivamente.
-e) La comunicación serie asincrónica deberá implementarse utilizando interrupciones de recepción y
-transmisión del periférico UART0.
+Este proyecto implementa un registrador de temperatura y humedad relativa utilizando el sensor DHT11, el módulo RTC DS3231 y un kit de MCU conectado a una PC a través de la interfaz USB. El proyecto ha sido desarrollado como parte del curso "Circuitos Digitales y Microcontroladores (E305)" en la Facultad de Ingeniería de la UNLP.
 
 ## Tabla de Contenidos
-- [Instalación](#instalación)
+- [Descripción](#descripción)
+- [Requerimientos del Sistema](#requerimientos-del-sistema)
 - [Uso](#uso)
-- [Contribución](#contribución)
-- [Licencia](#licencia)
-- [Autores y Reconocimientos](#autores-y-reconocimientos)
+- [Autores](#autores)
 
-## Instalación
+## Descripción
+
+El sistema encuestará al sensor DHT11 cada 2 segundos para obtener medidas de temperatura y humedad relativa. Utilizando el módulo RTC DS3231, el MCU agregará la fecha y hora actual a cada registro y los enviará a una terminal serie en una PC mediante la interfaz UART.
+
+## Requerimientos del Sistema
+
+El sistema debe cumplir con los siguientes requerimientos:
+
+1. **Encuesta del Sensor**: El MCU encuestará al sensor DHT11 cada 2 segundos.
+2. **Registro de Fecha y Hora**: Utilizando el módulo RTC, el MCU añadirá la fecha y hora actual a cada registro.
+3. **Formato de Datos**: Los datos se formatearán como "TEMP: 20 °C HUM: 40% FECHA: 10/06/24 HORA:15:30:56\r\n".
+4. **Control de Envío de Datos**: El envío de datos puede detenerse o reanudarse desde la PC presionando la tecla ‘s’ o ‘S’.
+5. **Comunicación Serie Asincrónica**: Implementada utilizando interrupciones de recepción y transmisión del periférico UART0.
+
 
 ### Prerrequisitos
-- [Software o dependencias necesarias]
+- Kit de MCU compatible
+- Sensor DHT11
+- Módulo RTC DS3231
+- Conexión a una PC vía USB
+- Software para terminal serie
 
-### Pasos
+### Autores
+- Melina Caciani Toniolo
+- Franco Niderhaus
+- Mateo Larsen
