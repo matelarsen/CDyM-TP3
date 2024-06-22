@@ -69,22 +69,6 @@ int main(void) {
 				 snprintf(buffer, sizeof(buffer), "Fallo del sensor DHT11!!\n\r");
 			 SerialPort_Send_String(buffer);  // Envía el mensaje formateado por el puerto serie
 		 }
-		/*
-		if (flag && send_data) {  // Comprueba si el flag está activado
-			flag = 0;  // Resetea el flag
-			reiniciar_timer(); //reinicia el timer para que funcione correctamente en caso de reanudar en un tiempo impar
-			DS3231_GetTime(&currentTime);  // Obtiene la hora actual del RTC
-			read_dht11();  // Lee los datos del sensor DHT11
-			// Formatea y envía los datos
-			char buffer[128];  // Define un buffer para el mensaje
-			if (!fallo)
-			  snprintf(buffer, sizeof(buffer), "TEMP: %02d°C HUM: %02d%% FECHA: %02d/%02d/%02d HORA: %02d:%02d:%02d\n\r", temperature, humidity, currentTime.date, currentTime.month, currentTime.year, currentTime.hours, currentTime.minutes, currentTime.seconds);
-			else
-			  snprintf(buffer, sizeof(buffer), "Fallo del sensor DHT11!!\n\r");
-			SerialPort_Send_String(buffer);  // Envía el mensaje formateado por el puerto serie
-		}*/
-
-		
 	}
 
 	return 1;  // Retorna 1 (aunque nunca llegará a este punto debido al bucle infinito)
