@@ -14,6 +14,7 @@
 volatile uint8_t send_data = 1;  // Variable global para controlar el envío de datos
 volatile char RX_Buffer = 0;     // Buffer para recepción de datos
 extern volatile flagLibre;       // Variable externa para indicar el estado del buffer de transmisión
+volatile uint8_t dht11_ready = 0;
 
 int main(void) {
 	// Inicialización del temporizador
@@ -47,6 +48,28 @@ int main(void) {
 	uint8_t year;  // Variable para almacenar el año
 
 	while (1) {  // Bucle infinito
+		 if (flag) {  // Comprueba si el flag para DHT11 está activado
+			 flag = 0;  // Resetea el flag
+			 dht11_ready = 1;
+			 read_dht11();  // Lee los datos del sensor DHT11
+		 }
+		 
+		 // Enviar datos si está habilitado y ambos sensores han proporcionado datos
+		 if (send_data && dht11_ready) {
+			 dht11_ready = 0;  // Resetea el flag de lectura del DHT11
+			 
+			 reiniciar_timer();
+			 
+			 DS3231_GetTime(&currentTime); 
+			 
+			 char buffer[128];  // Define un buffer para el mensaje
+			 if (!fallo)
+				 snprintf(buffer, sizeof(buffer), "TEMP: %02d°C HUM: %02d%% FECHA: %02d/%02d/%02d HORA: %02d:%02d:%02d\n\r", temperature, humidity, currentTime.date, currentTime.month, currentTime.year, currentTime.hours, currentTime.minutes, currentTime.seconds);
+			 else
+				 snprintf(buffer, sizeof(buffer), "Fallo del sensor DHT11!!\n\r");
+			 SerialPort_Send_String(buffer);  // Envía el mensaje formateado por el puerto serie
+		 }
+		/*
 		if (flag && send_data) {  // Comprueba si el flag está activado
 			flag = 0;  // Resetea el flag
 			reiniciar_timer(); //reinicia el timer para que funcione correctamente en caso de reanudar en un tiempo impar
@@ -59,7 +82,7 @@ int main(void) {
 			else
 			  snprintf(buffer, sizeof(buffer), "Fallo del sensor DHT11!!\n\r");
 			SerialPort_Send_String(buffer);  // Envía el mensaje formateado por el puerto serie
-		}
+		}*/
 
 		
 	}
