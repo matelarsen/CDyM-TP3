@@ -14,6 +14,8 @@
 volatile uint8_t send_data = 1;  // Variable global para controlar el envío de datos
 volatile char RX_Buffer = 0;     // Buffer para recepción de datos
 extern volatile flagLibre;       // Variable externa para indicar el estado del buffer de transmisión
+volatile uint8_t dht11_ready = 0; // Indica si la lectura del DHT11 está lista
+volatile uint8_t ds3231_ready = 0; // Indica si la lectura del DS3231 está lista
 
 int main(void) {
 	// Inicialización del temporizador
@@ -47,28 +49,29 @@ int main(void) {
 	uint8_t year;  // Variable para almacenar el año
 
 	while (1) {  // Bucle infinito
-		if (flag) {  // Comprueba si el flag está activado
-			flag = 0;  // Resetea el flag
-
-			if (send_data) {  // Si el envío de datos está habilitado
-				DS3231_GetTime(&currentTime);  // Obtiene la hora actual del RTC
-				read_dht11();  // Lee los datos del sensor DHT11
-				// Formatea y envía los datos
-				char buffer[128];  // Define un buffer para el mensaje
-				if (!fallo)
-				  snprintf(buffer, sizeof(buffer), "TEMP: %02d°C HUM: %02d%% FECHA: %02d/%02d/%02d HORA: %02d:%02d:%02d\n\r", temperature, humidity, currentTime.date, currentTime.month, currentTime.year, currentTime.hours, currentTime.minutes, currentTime.seconds);
-				else
-				  snprintf(buffer, sizeof(buffer), "Fallo del sensor DHT11!!\n\r");
-				SerialPort_Send_String(buffer);  // Envía el mensaje formateado por el puerto serie
-			}
+		if (flag_dht11) {  // Comprueba si el flag para DHT11 está activado
+			flag_dht11 = 0;  // Resetea el flag
+			dht11_ready = 1;
+			read_dht11();  // Lee los datos del sensor DHT11
 		}
 
-		// Cambia el estado de envío de datos al recibir 's' o 'S'
-		if (RX_Buffer) {  // Comprueba si hay un dato recibido en el buffer
-			if (RX_Buffer == 's' || RX_Buffer == 'S') {  // Si el dato recibido es 's' o 'S'
-				send_data = !send_data;  // Cambia el estado de la variable send_data
-			}
-			RX_Buffer = 0;  // Resetea el buffer de recepción
+		if (flag_ds3231) {  // Comprueba si el flag para DS3231 está activado
+			flag_ds3231 = 0;  // Resetea el flag
+			ds3231_ready = 1;
+			DS3231_GetTime(&currentTime); ;  // Lee la hora actual del RTC
+		}
+
+		// Enviar datos si está habilitado y ambos sensores han proporcionado datos
+		if (send_data && dht11_ready && ds3231_ready) {
+			dht11_ready = 0;  // Resetea el flag de lectura del DHT11
+			ds3231_ready = 0; // Resetea el flag de lectura del DS3231
+
+			char buffer[128];  // Define un buffer para el mensaje
+			if (!fallo)
+			snprintf(buffer, sizeof(buffer), "TEMP: %02d°C HUM: %02d%% FECHA: %02d/%02d/%02d HORA: %02d:%02d:%02d\n\r", temperature, humidity, currentTime.date, currentTime.month, currentTime.year, currentTime.hours, currentTime.minutes, currentTime.seconds);
+			else
+			snprintf(buffer, sizeof(buffer), "Fallo del sensor DHT11!!\n\r");
+			SerialPort_Send_String(buffer);  // Envía el mensaje formateado por el puerto serie
 		}
 	}
 
@@ -78,8 +81,10 @@ int main(void) {
 // Interrupción de recepción UART
 ISR(USART_RX_vect) {
 	RX_Buffer = UDR0; // Lee el dato recibido y lo almacena en RX_Buffer (la lectura borra el flag RXC)
+	if (RX_Buffer == 's' || RX_Buffer == 'S') {
+		send_data = !send_data;  // Cambia el estado de la variable send_data
+	}
 }
-
 // Interrupción de transmisión UART
 ISR(USART_UDRE_vect) {
 	flagLibre = 1;  // Indica que el buffer de transmisión está libre
