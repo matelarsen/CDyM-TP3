@@ -1,7 +1,6 @@
 #include "timer.h"
 
-volatile uint8_t flag_dht11 = 0;
-volatile uint8_t flag_ds3231 = 0;
+volatile uint8_t flag = 0;
 
 void timer1_init(void) {
 	// Configura el Timer1 para generar una interrupción cada 2 segundos
@@ -11,7 +10,10 @@ void timer1_init(void) {
 	TIMSK1 |= (1 << OCIE1A);  // Habilita la interrupción por comparación
 }
 
+void reiniciar_timer(){
+	TCNT1 = 0;
+}
+
 ISR(TIMER1_COMPA_vect) {
-	flag_dht11 = 1;  // Activa el flag para leer el sensor DHT11
-	flag_ds3231 = 1; // Activa el flag para leer el RTC DS3231
+	flag = 1;  // Activa el flag para leer el sensor DHT11
 }

@@ -7,8 +7,9 @@
 #include <stdio.h>
 #include <avr/interrupt.h>
 
-extern volatile uint8_t flag_ds3231,flag_dht11 ;
+extern volatile uint8_t flag ;
 
 void timer1_init(void);
+void reiniciar_timer();
 
 #endif /* TIMER_H_ */
