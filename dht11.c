@@ -16,31 +16,31 @@ void read_dht11(void) {
 	// Inicia la comunicación con el sensor
 	DHT11_DDR |= (1 << DHT11_PIN);  // Configura el pin del DHT11 como salida
 	DHT11_PORT &= ~(1 << DHT11_PIN); // Lleva el pin a LOW
-	_delay_ms(18); // Mantiene LOW por al menos 18 ms
+	_delay_ms(20); // Mantiene LOW por al menos 18 ms
 	DHT11_PORT |= (1 << DHT11_PIN);  // Lleva el pin a HIGH
 	_delay_us(20);  // Espera 20-40 us
 	
 	DHT11_DDR &= ~(1 << DHT11_PIN);  // Configura el pin como entrada
 
 	// Espera la respuesta del sensor
-	timeout = 10000;
-	while (DHT11_PIN_INPUT & (1 << DHT11_PIN)) { // Espera a que el pin se ponga en LOW
+	timeout = 20000;
+	while (DHT11_PIN_INPUT & (1 << DHT11_PIN)){ // Espera a que el pin se ponga en LOW
 		if (--timeout == 0) {
 			fallo = 1;
 			return;
 		}
 	}
 
-	timeout = 10000;
-	while (!(DHT11_PIN_INPUT & (1 << DHT11_PIN))) { // Espera a que el pin se ponga en HIGH
+	timeout = 20000;
+	while (!(DHT11_PIN_INPUT & (1 << DHT11_PIN))){ // Espera a que el pin se ponga en HIGH
 		if (--timeout == 0) {
 			fallo = 1;
 			return;
 		}
 	}
 
-	timeout = 10000;
-	while (DHT11_PIN_INPUT & (1 << DHT11_PIN)) { // Espera a que el pin se ponga en LOW
+	timeout = 20000;
+	while (DHT11_PIN_INPUT & (1 << DHT11_PIN)){ // Espera a que el pin se ponga en LOW
 		if (--timeout == 0) {
 			fallo = 1;
 			return;
@@ -58,7 +58,7 @@ void read_dht11(void) {
 	check_sum = data[4];
 	
 	// Verifica la suma de comprobación
-	if ((humidity + temperature) != check_sum) {
+	if ((humidity + data[1] + temperature + data[3]) != check_sum) {
 		fallo=1;
 		} else {
 		  fallo=0;

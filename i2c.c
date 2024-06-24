@@ -2,6 +2,7 @@
 #include "i2c.h"
 
 void I2C_Init(void) {
+	// Set SCL frequency to 400kHz with 16MHz clock
 	TWSR = 0x00; // Configura el prescaler a 1
 	TWBR = 152; // Configura el Bit Rate para 400kHz
 	TWCR = (1<<TWEN); // Habilita el módulo TWI
